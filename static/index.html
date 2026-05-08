@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO Audit — Vertigo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#ffffff; --bg2:#f0f4ff; --bg3:#e4ecff; --border:#ccd5f5;
+  --text:#1a2040; --text2:#5a6a8a;
+  --accent:#076CFE; --accent2:#0559d4;
+  --ok:#059669; --warn:#d97706; --err:#dc2626;
+  --ok-bg:rgba(5,150,105,.1); --warn-bg:rgba(217,119,6,.1); --err-bg:rgba(220,38,38,.1);
+  --geo:#7c3aed; --geo-bg:rgba(124,58,237,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;font-size:14px}
+a{color:var(--accent);text-decoration:none}
+
+/* Header */
+header{background:linear-gradient(135deg,#0C1557 0%,#0b1e6e 55%,#076CFE 100%);border-bottom:2px solid rgba(7,108,254,.4);position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(7,108,254,.18)}
+.header-inner{display:flex;align-items:center;gap:20px;padding:0 32px;height:80px;max-width:1400px;margin:0 auto}
+.logo-wrap{background:#fff;border-radius:10px;padding:7px 16px;display:flex;align-items:center;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.logo-wrap img{height:46px;display:block;width:auto}
+.logo-fallback{font-size:18px;font-weight:800;color:#0C1557;letter-spacing:-.5px}
+.header-title{font-size:12px;font-weight:600;color:#fff;padding-left:20px;border-left:1px solid rgba(255,255,255,.25);display:flex;flex-direction:column;gap:2px;line-height:1.3;max-width:400px}
+.header-title span{font-size:10px;color:rgba(255,255,255,.55);font-weight:400}
+.nav-links{display:flex;gap:6px;margin-left:auto}
+.nav-btn{padding:9px 20px;border-radius:9px;border:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;font-weight:500;transition:.2s}
+.nav-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(7,108,254,.4)}
+
+/* Layout */
+.screen{display:none;padding:32px 28px;max-width:1400px;margin:0 auto}
+.screen.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
+
+/* Home */
+.home-hero{text-align:center;padding:48px 0 36px}
+.home-hero h1{font-size:24px;font-weight:700;margin-bottom:12px;line-height:1.4}
+.home-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-hero p{color:var(--text2);font-size:15px}
+.audit-card{max-width:640px;margin:0 auto}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg3);border-radius:10px;padding:4px}
+.tab{flex:1;padding:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;border-radius:7px;font-size:13px;font-weight:500;transition:.2s}
+.tab.active{background:#fff;color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.1)}
+label.field-label{display:block;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+input[type=text],input[type=url]{width:100%;padding:12px 16px;background:#fff;border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;outline:none;transition:.2s}
+input[type=text]:focus,input[type=url]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(7,108,254,.12)}
+textarea.url-textarea{width:100%;padding:12px 16px;background:#fff;border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;transition:.2s;resize:vertical;font-family:inherit;line-height:1.6;min-height:100px}
+textarea.url-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(7,108,254,.12)}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:.2s;position:relative;background:#fff}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:rgba(7,108,254,.03)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:32px;margin-bottom:10px}
+.drop-zone strong{color:var(--text);display:block;margin-bottom:5px;font-size:14px}
+.drop-zone p{color:var(--text2);font-size:12px}
+.file-selected{color:var(--accent);font-weight:500;margin-top:8px;display:block}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;width:100%;margin-top:16px;padding:14px;font-size:15px;font-weight:700;box-shadow:0 4px 16px rgba(7,108,254,.25)}
+.btn-primary:hover:not(:disabled){background:#0559d4;box-shadow:0 6px 24px rgba(7,108,254,.35)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:8px 16px;font-size:12px;border-radius:7px}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--text)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:#0559d4}
+.btn-danger{background:var(--err-bg);border:1px solid rgba(220,38,38,.25);color:var(--err)}
+.btn-danger:hover{background:var(--err);color:#fff}
+.btn-ghost{background:rgba(7,108,254,.08);border:1.5px solid rgba(7,108,254,.2);color:var(--accent)}
+.btn-ghost:hover{background:rgba(7,108,254,.15)}
+.btn-pdf{background:var(--accent);color:#fff;padding:12px 28px;font-size:14px;font-weight:700;border-radius:10px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(7,108,254,.3);display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.btn-pdf:hover:not(:disabled){background:#0559d4;box-shadow:0 6px 24px rgba(7,108,254,.4)}
+.btn-pdf:disabled{opacity:.6;cursor:not-allowed}
+.btn-insights{background:var(--accent);color:#fff;padding:8px 18px;font-size:12px;font-weight:700;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(7,108,254,.3);transition:.2s;white-space:nowrap}
+.btn-insights:hover{background:#0559d4}
+.btn-insights.active{background:#0559d4}
+.btn-del-row{background:transparent;border:none;cursor:pointer;color:var(--text2);font-size:15px;padding:4px 6px;border-radius:6px;transition:.15s;line-height:1}
+.btn-del-row:hover{background:var(--err-bg);color:var(--err)}
+
+/* Progress */
+.progress-wrap{margin-top:18px;display:none}
+.progress-info{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:var(--text2)}
+.progress-bar{background:var(--bg3);border-radius:999px;height:8px;overflow:hidden}
+.progress-fill{background:linear-gradient(90deg,var(--accent),#7c3aed);height:100%;border-radius:999px;transition:width .5s ease;width:0%}
+.progress-sub{text-align:center;margin-top:8px;font-size:12px;color:var(--text2)}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:18px;text-align:center;box-shadow:0 2px 8px rgba(7,108,254,.06)}
+.stat-card .value{font-size:32px;font-weight:700;margin-bottom:4px}
+.stat-card .label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+.stat-ok .value{color:var(--ok)} .stat-warn .value{color:var(--warn)}
+.stat-err .value{color:var(--err)} .stat-blue .value{color:var(--accent)}
+
+/* Charts */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:680px){.charts-grid{grid-template-columns:1fr}}
+.chart-card{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:20px;box-shadow:0 2px 8px rgba(7,108,254,.06)}
+.chart-card h3{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:14px;text-transform:uppercase;letter-spacing:.07em}
+.chart-wrap{position:relative;height:210px}
+
+/* Domain section */
+.domain-section{margin-bottom:32px}
+.domain-section-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 16px;background:linear-gradient(90deg,rgba(7,108,254,.08),transparent);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}
+.domain-section-header h3{font-size:14px;font-weight:700;color:var(--text)}
+
+/* Top problems */
+.top-problems-panel{height:auto!important}
+.top-problem-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.top-problem-item:last-child{border-bottom:none}
+.problem-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.rank-high{background:var(--err-bg);color:var(--err)}
+.rank-med{background:var(--warn-bg);color:var(--warn)}
+.rank-low{background:var(--bg3);color:var(--text2)}
+.problem-info{flex:1}
+.problem-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.problem-meta{font-size:11px;color:var(--text2);margin-bottom:3px}
+.problem-fix{font-size:11px;color:var(--accent);font-weight:500}
+
+/* Ranking */
+.ranking-card{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(7,108,254,.06)}
+.ranking-card h3{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:14px;text-transform:uppercase;letter-spacing:.07em}
+.ranking-item{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.ranking-item:last-child{border-bottom:none}
+.rank-num{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.rank-1{background:rgba(245,158,11,.15);color:var(--warn)}
+.rank-2{background:rgba(100,116,139,.12);color:var(--text2)}
+.rank-3{background:rgba(205,127,50,.12);color:#b45309}
+.rank-n{background:var(--bg3);color:var(--text2)}
+.rank-url{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-url a{color:var(--text2)}
+.rank-url a:hover{color:var(--accent)}
+.rank-badges{display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+
+/* Badge / Pill */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid rgba(220,38,38,.2)}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid rgba(217,119,6,.2)}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.pill-ok{background:var(--ok-bg);color:var(--ok)} .pill-warn{background:var(--warn-bg);color:var(--warn)}
+.pill-err{background:var(--err-bg);color:var(--err)} .pill-dead{background:var(--bg3);color:var(--text2)}
+.pill-clickable{cursor:pointer;transition:.15s}
+.pill-clickable:hover{filter:brightness(.92);transform:scale(1.03)}
+
+/* Keyword tags */
+.kw-section{margin-top:12px;padding:10px 14px;background:rgba(7,108,254,.04);border-radius:9px;border:1px solid rgba(7,108,254,.12)}
+.kw-tag{display:inline-flex;align-items:center;padding:3px 10px;background:rgba(7,108,254,.1);border:1px solid rgba(7,108,254,.2);border-radius:999px;font-size:11px;font-weight:600;color:var(--accent)}
+
+/* Pauta suggestions */
+.pauta-card{display:flex;gap:12px;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--accent);margin-bottom:8px}
+.pauta-num{width:24px;height:24px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.pauta-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px}
+.pauta-detail{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:2px}
+.pauta-detail strong{color:var(--text);font-weight:600}
+
+/* Deep analysis */
+.deep-cat-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px;padding:5px 10px;background:var(--bg3);border-radius:6px;display:inline-block}
+
+/* Add URL bar */
+.add-url-bar{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:24px;box-shadow:0 2px 8px rgba(7,108,254,.06)}
+.add-url-bar textarea{flex:1;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;transition:.2s;resize:vertical;min-height:42px;font-family:inherit;line-height:1.5}
+.add-url-bar textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(7,108,254,.1)}
+.add-url-bar .label{font-size:12px;color:var(--text2);white-space:nowrap;font-weight:600;padding-top:10px}
+
+/* Table */
+.table-section{background:#fff;border:1.5px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:24px;box-shadow:0 2px 8px rgba(7,108,254,.06)}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;gap:8px}
+.table-header h3{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em}
+.table-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.table-outer{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 14px;text-align:left;font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;background:var(--bg2);border-bottom:1.5px solid var(--border);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr.data-row{transition:.15s}
+tr.data-row:hover td{background:rgba(7,108,254,.04)}
+tr.data-row:last-child td{border-bottom:none}
+.url-cell{max-width:200px}
+.url-cell a{color:var(--text2);font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.url-cell a:hover{color:var(--accent)}
+.empresa-cell{font-size:11px;font-weight:600;color:var(--accent);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+select.company-filter{padding:7px 12px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;cursor:pointer;transition:.2s}
+select.company-filter:focus{border-color:var(--accent)}
+
+/* Insights row */
+.insights-row td{padding:0;border-bottom:1px solid var(--border)}
+.insights-panel{padding:20px 22px 22px;background:rgba(7,108,254,.03);border-top:2px solid rgba(7,108,254,.15)}
+.insights-panel h4{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.insight-list{display:flex;flex-direction:column;gap:7px}
+.insight-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:9px;font-size:12px;line-height:1.5}
+.insight-ok{background:var(--ok-bg);border:1px solid rgba(5,150,105,.2)}
+.insight-err{background:var(--err-bg);border:1px solid rgba(220,38,38,.2)}
+.insight-warn{background:var(--warn-bg);border:1px solid rgba(217,119,6,.2)}
+.insight-geo{background:var(--geo-bg);border:1px solid rgba(124,58,237,.2)}
+.insight-icon{flex-shrink:0;font-size:14px;line-height:1}
+.insight-text{color:var(--text);flex:1}
+.insight-text strong{color:var(--text2);font-weight:600;display:block;margin-bottom:2px;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.geo-section-title{font-size:11px;font-weight:700;color:var(--geo);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;padding:8px 12px;background:var(--geo-bg);border-radius:8px;border-left:3px solid var(--geo)}
+.geo-fixed-tip{margin-top:12px;padding:10px 14px;background:linear-gradient(90deg,rgba(124,58,237,.1),rgba(7,108,254,.08));border:1px solid rgba(124,58,237,.25);border-radius:9px;font-size:12px;color:var(--geo);line-height:1.5;display:flex;align-items:flex-start;gap:8px}
+
+/* Section header */
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+.section-header h2{font-size:20px;font-weight:700;color:var(--text)}
+.section-header .meta{color:var(--text2);font-size:12px}
+.back-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text2);cursor:pointer;font-size:12px;transition:.2s}
+.back-btn:hover{border-color:var(--accent);color:var(--text)}
+
+/* Domain group header in table */
+.domain-group-header{background:linear-gradient(90deg,rgba(7,108,254,.07),rgba(7,108,254,.02));cursor:pointer;user-select:none;transition:.15s}
+.domain-group-header:hover td{background:rgba(7,108,254,.11)}
+.domain-group-header td{padding:10px 14px;border-bottom:1.5px solid var(--border)}
+.domain-toggle-icon{font-size:10px;color:var(--accent);font-weight:800;min-width:16px;display:inline-block;transition:transform .2s}
+/* Misc status dot (kept for potential reuse) */
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* Empty */
+.empty{text-align:center;padding:56px 20px;color:var(--text2)}
+.empty-icon{font-size:44px;margin-bottom:14px}
+.empty h3{font-size:17px;color:var(--text);margin-bottom:7px}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;pointer-events:all;animation:slideIn .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.toast-ok{background:var(--ok);color:#fff} .toast-warn{background:var(--warn);color:#fff} .toast-err{background:var(--err);color:#fff}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateX(40px)}}
+
+/* Misc */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.search-input{padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;width:170px;transition:.2s}
+.search-input:focus{border-color:var(--accent)}
+
+/* Action bar / PDF */
+.action-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:24px}
+.action-bar-label{font-size:13px;color:var(--text2);flex:1}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(26,32,64,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(7,108,254,.2);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.93);opacity:0}to{transform:none;opacity:1}}
+.modal-box h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.modal-box .modal-desc{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+.modal-fix{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--text);line-height:1.6}
+.modal-fix strong{color:var(--accent);display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.modal-close{display:block;margin-top:18px;width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
+.modal-close:hover{background:#0559d4}
+
+/* Print */
+@media print{header,.nav-links,.back-btn,.add-url-bar,.table-actions,#toasts,.action-bar,.btn-pdf,.app-footer{display:none!important}body{background:#fff!important}.screen{display:block!important;padding:12px!important}.screen:not(.active){display:none!important}}
+
+/* Domain section collapsible */
+.domain-section-header{cursor:pointer;user-select:none}
+.domain-section-header:hover{background:linear-gradient(90deg,rgba(7,108,254,.14),transparent)}
+.domain-toggle-arrow{font-size:12px;color:var(--accent);flex-shrink:0;transition:transform .18s}
+
+/* Roadmap */
+.roadmap-hero{text-align:center;padding:48px 0 32px}
+.roadmap-hero h1{font-size:28px;font-weight:800;color:var(--text);margin-bottom:8px;letter-spacing:-.3px}
+.roadmap-hero p{font-size:15px;color:var(--text2)}
+.roadmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:20px;max-width:860px;margin:0 auto;padding-bottom:56px}
+.roadmap-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:26px 18px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transition:.2s}
+.roadmap-card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(7,108,254,.12);transform:translateY(-2px)}
+.roadmap-card-icon{width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:rgba(7,108,254,.08);border-radius:12px;color:var(--accent)}
+.roadmap-card-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.roadmap-card-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.4}
+.badge-soon{display:inline-block;font-size:9.5px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.28);border-radius:20px;padding:3px 10px;text-transform:uppercase;letter-spacing:.07em;animation:pulse-soon 2.4s ease-in-out infinite}
+@keyframes pulse-soon{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.3)}60%{box-shadow:0 0 0 5px rgba(124,58,237,0)}}
+
+/* App version footer */
+.app-footer{text-align:center;padding:14px 0 18px;font-size:11px;color:var(--text2);border-top:1px solid var(--border);margin-top:40px;letter-spacing:.02em;opacity:.7}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <img src="vertigo-logo.png" alt="Vertigo" onerror="this.parentElement.innerHTML='<span class=logo-fallback>VERTIGO</span>'">
+    </div>
+    <div class="header-title">
+      Análise técnica de conteúdos, title, meta description e estrutura de headings, com insights de GEO para IAs
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" id="nav-home"    onclick="showScreen('home')">Nova Auditoria</button>
+      <button class="nav-btn"        id="nav-roadmap" onclick="showScreen('roadmap')">Roadmap</button>
+    </div>
+  </div>
+</header>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p class="modal-desc" id="modal-desc"></p>
+    <div class="modal-fix"><strong>Como corrigir</strong><span id="modal-fix"></span></div>
+    <button class="modal-close" onclick="closeModal()">Entendi</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="home-hero">
+    <h1>Análise técnica de <em>conteúdos, title, meta description</em><br>e estrutura de headings</h1>
+    <p>com insights de GEO para IAs.</p>
+  </div>
+  <div class="audit-card card">
+    <div class="tabs">
+      <button class="tab active" id="tab-url" onclick="switchTab('url')">🔗 URLs</button>
+      <button class="tab"        id="tab-csv" onclick="switchTab('csv')">📄 Upload CSV/XLSX</button>
+    </div>
+    <div id="panel-url">
+      <label class="field-label">URL(s) da página — cole uma ou várias</label>
+      <textarea class="url-textarea" id="url-input"
+        placeholder="Cole uma ou várias URLs (uma por linha)&#10;https://empresa.com.br/pagina-1&#10;https://empresa.com.br/pagina-2&#10;https://empresa.com.br/pagina-3"></textarea>
+    </div>
+    <div id="panel-csv" style="display:none">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="csv-input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
+        <div class="drop-icon">📂</div>
+        <strong>Arraste o arquivo CSV ou XLSX aqui</strong>
+        <p>ou clique para selecionar • Uma URL por linha/coluna</p>
+        <span id="file-name" class="file-selected" style="display:none"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.15);border-radius:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="6" height="6" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="5" y="15" width="6" height="6" rx="1"/><path d="M5 9v3M12 9v3M8 12h7"/></svg>
+        <span style="font-size:11px;color:#6d28d9">Integração com Screaming Frog em desenvolvimento</span>
+        <span class="badge-soon" style="margin-left:auto;font-size:9px">Em breve</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="start-btn" onclick="startAudit()">🔍 Iniciar Auditoria</button>
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-label">Iniciando crawl…</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-sub" id="progress-sub"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screen-results">
+  <div class="section-header">
+    <button class="back-btn" onclick="showScreen('home')">← Voltar</button>
+    <div>
+      <h2 id="result-title">Resultados</h2>
+      <div class="meta" id="result-meta"></div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="exportXlsx()">⬇️ Exportar XLSX</button>
+    </div>
+  </div>
+
+  <div class="action-bar" id="pdf-bar">
+    <span class="action-bar-label">📊 Relatório completo com SEO, GEO, palavras-chave e sugestões de pautas</span>
+    <button class="btn-pdf" id="btn-pdf-results" onclick="downloadPdf()">📥 Baixar Relatório em PDF</button>
+  </div>
+
+  <div class="add-url-bar">
+    <span class="label">➕ Adicionar URLs:</span>
+    <textarea id="add-url-input" rows="2"
+      placeholder="Cole uma ou várias URLs (uma por linha)"
+      onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))addUrl()"></textarea>
+    <button class="btn btn-accent btn-sm" id="add-url-btn" onclick="addUrl()">Auditar</button>
+  </div>
+
+  <!-- Domain sections (stats + charts + ranking per domain) -->
+  <div id="domain-sections"></div>
+
+  <!-- Table (all domains) -->
+  <div class="table-section">
+    <div class="table-header">
+      <h3>Todas as URLs <span style="color:var(--accent);font-weight:400;font-size:10px;margin-left:6px">clique em 💡 Insights para recomendações</span></h3>
+      <div class="table-actions">
+        <select class="company-filter" id="company-filter" onchange="filterTable()">
+          <option value="">Todos os domínios</option>
+        </select>
+        <input class="search-input" type="text" id="table-search" placeholder="Filtrar URL…" oninput="filterTable()">
+      </div>
+    </div>
+    <div class="table-outer">
+      <table>
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Insights / Ações</th>
+            <th>URL</th>
+            <th>Tam. URL</th>
+            <th>Title <span style="font-weight:400">(≤70)</span></th>
+            <th>Meta <span style="font-weight:400">(140–160)</span></th>
+            <th>H1</th>
+            <th>H2/H3</th>
+            <th>GEO</th>
+            <th>❌</th>
+            <th>⚠️</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="result-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let currentAuditId = null;
+let currentAudit   = null;
+let currentResults = [];
+let pollTimer      = null;
+let activeTab      = 'url';
+let selectedFile   = null;
+let chartRegistry  = {};   // { canvasId: Chart instance }
+
+// ── Pill modal explanations ────────────────────────────────────────────────────
+const PILL_EXPLANATIONS = {
+  title_absent: { title:'❌ Title Ausente', desc:'A página não possui tag <title>. Isso prejudica fortemente o ranqueamento.', fix:'Adicione um <title> único e descritivo com até 70 caracteres, incluindo a palavra-chave principal no início.' },
+  title_long:   { title:'❌ Title Muito Longo (>90)', desc:'O title ultrapassa 90 caracteres e será fortemente truncado pelo Google.', fix:'Reduza para até 70 caracteres. Mantenha a palavra-chave principal no início.' },
+  title_warn:   { title:'⚠️ Title Longo (71–90)', desc:'O title tem entre 71 e 90 caracteres e pode ser truncado em alguns resultados.', fix:'Reduza para até 70 caracteres para garantir exibição completa.' },
+  meta_absent:  { title:'❌ Meta Description Ausente', desc:'A página não tem meta description. O Google pode exibir qualquer trecho sem controle de mensagem.', fix:'Escreva uma meta description de 140–160 caracteres com CTA implícito.' },
+  meta_long:    { title:'❌ Meta Description Longa', desc:'A meta description ultrapassa 160 caracteres e será truncada.', fix:'Reduza para até 160 caracteres, priorizando as informações mais importantes no início.' },
+  meta_short:   { title:'⚠️ Meta Description Curta', desc:'A meta description tem menos de 140 caracteres e não aproveita o espaço disponível.', fix:'Expanda para 140–160 caracteres. Inclua benefícios, palavras-chave secundárias e um CTA.' },
+  h1_absent:    { title:'❌ H1 Ausente', desc:'A página não possui tag H1. O H1 é o principal sinal de relevância para buscadores.', fix:'Adicione exatamente 1 H1 com a palavra-chave principal da página.' },
+  h1_multiple:  { title:'⚠️ Múltiplos H1', desc:'A página tem mais de 1 H1, o que pode confundir os crawlers.', fix:'Mantenha apenas 1 H1 por página. Transforme os demais em H2 ou H3.' },
+  url_warn:     { title:'⚠️ URL Longa (71–80 chars)', desc:'A URL tem entre 71 e 80 caracteres. URLs mais curtas são preferidas.', fix:'Simplifique a URL removendo stop words e parâmetros desnecessários.' },
+  url_err:      { title:'❌ URL Muito Longa (>80 chars)', desc:'A URL ultrapassa 80 caracteres, impactando ranqueamento e usabilidade.', fix:'Encurte para até 70 caracteres com slugs curtos e objetivos.' },
+};
+
+function showPillModal(field, status) {
+  const key  = `${field}_${status}`;
+  const info = PILL_EXPLANATIONS[key];
+  if (!info) return;
+  document.getElementById('modal-title').textContent = info.title;
+  document.getElementById('modal-desc').textContent  = info.desc;
+  document.getElementById('modal-fix').textContent   = info.fix;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-home').classList.toggle('active', name === 'home');
+  document.getElementById('nav-roadmap').classList.toggle('active', name === 'roadmap');
+  if (name === 'home') {
+    // Clear fields
+    const ta = document.getElementById('url-input');
+    if (ta) ta.value = '';
+    selectedFile = null;
+    const fn = document.getElementById('file-name');
+    if (fn) { fn.style.display = 'none'; fn.textContent = ''; }
+  }
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('panel-url').style.display = tab === 'url' ? '' : 'none';
+  document.getElementById('panel-csv').style.display = tab === 'csv' ? '' : 'none';
+  document.getElementById('tab-url').classList.toggle('active', tab === 'url');
+  document.getElementById('tab-csv').classList.toggle('active', tab === 'csv');
+}
+
+// ── File drop ──────────────────────────────────────────────────────────────────
+function handleFileSelect(e) {
+  selectedFile = e.target.files[0];
+  if (selectedFile) {
+    document.getElementById('file-name').textContent = '✓ ' + selectedFile.name;
+    document.getElementById('file-name').style.display = '';
+  }
+}
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.csv') || f.name.endsWith('.xlsx') || f.name.endsWith('.xls'))) {
+    selectedFile = f;
+    document.getElementById('file-name').textContent = '✓ ' + f.name;
+    document.getElementById('file-name').style.display = '';
+  }
+});
+
+// ── Start audit ────────────────────────────────────────────────────────────────
+async function startAudit() {
+  const btn = document.getElementById('start-btn');
+  let body, hdrs;
+  if (activeTab === 'url') {
+    const raw = document.getElementById('url-input').value.trim();
+    if (!raw) { toast('Informe ao menos uma URL', 'warn'); return; }
+    const urlList = raw.split(/[\n\r,;]+/).map(u => u.trim()).filter(Boolean);
+    if (!urlList.length) { toast('Nenhuma URL válida encontrada', 'warn'); return; }
+    body = JSON.stringify({ urls: urlList });
+    hdrs = { 'Content-Type': 'application/json' };
+  } else {
+    if (!selectedFile) { toast('Selecione um arquivo CSV ou XLSX', 'warn'); return; }
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    body = fd; hdrs = {};
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Iniciando…';
+  try {
+    const res  = await fetch('/api/audit', { method: 'POST', headers: hdrs, body });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Erro ao iniciar', 'err'); resetBtn(); return; }
+    currentAuditId = data.audit_id;
+    showProgress(true);
+    pollAudit();
+  } catch(e) {
+    toast('Erro de conexão: ' + e.message, 'err');
+    resetBtn();
+  }
+}
+function resetBtn() {
+  const btn = document.getElementById('start-btn');
+  btn.disabled = false;
+  btn.innerHTML = '🔍 Iniciar Auditoria';
+}
+function showProgress(show) {
+  document.getElementById('progress-wrap').style.display = show ? 'block' : 'none';
+}
+
+// ── Polling ────────────────────────────────────────────────────────────────────
+function pollAudit() {
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(async () => {
+    try {
+      const res  = await fetch('/api/audit/' + currentAuditId + '/status');
+      const data = await res.json();
+      const total = data.total_urls || 1;
+      const done  = data.completed_urls || 0;
+      const pct   = Math.round((done / total) * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent  = pct + '%';
+      document.getElementById('progress-label').textContent =
+        data.status === 'running' ? `Analisando… (${done}/${total} URLs)` : 'Finalizando…';
+      document.getElementById('progress-sub').textContent =
+        done > 0 ? `${done} de ${total} páginas concluídas` : 'Conectando…';
+      if (data.status === 'completed') {
+        clearTimeout(pollTimer);
+        toast('Auditoria concluída!', 'ok');
+        resetBtn(); showProgress(false);
+        await loadResults(currentAuditId);
+        showScreen('results');
+      } else { pollAudit(); }
+    } catch(e) { pollAudit(); }
+  }, 800);
+}
+
+// ── Add URL(s) ─────────────────────────────────────────────────────────────────
+async function addUrl() {
+  const input = document.getElementById('add-url-input');
+  const btn   = document.getElementById('add-url-btn');
+  if (!currentAuditId) { toast('Nenhuma auditoria ativa', 'warn'); return; }
+
+  // Parse: split by newlines, trim, filter empty & invalid
+  const lines = input.value.split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0 && (l.startsWith('http://') || l.startsWith('https://')));
+
+  if (!lines.length) { toast('Informe ao menos uma URL válida (http/https)', 'warn'); return; }
+
+  // Deduplicate against already-audited results
+  const existing = new Set(currentResults.map(r => (r.url||'').replace(/\/$/,'').toLowerCase()));
+  const toAudit  = lines.filter(u => !existing.has(u.replace(/\/$/,'').toLowerCase()));
+  const skipped  = lines.length - toAudit.length;
+
+  if (!toAudit.length) {
+    toast(`${skipped > 1 ? 'Todas as URLs já foram' : 'URL já foi'} auditada${skipped > 1 ? 's' : ''} — ignorada${skipped > 1 ? 's' : ''}.`, 'warn');
+    return;
+  }
+
+  btn.disabled = true;
+  input.value  = '';
+  let done = 0, errors = 0;
+
+  for (const url of toAudit) {
+    btn.innerHTML = `<span class="spin"></span> ${done + 1}/${toAudit.length}`;
+    try {
+      const res  = await fetch(`/api/audit/${currentAuditId}/add`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      if (!data.duplicate && res.ok) done++;
+      else if (!res.ok) errors++;
+    } catch(e) { errors++; }
+  }
+
+  btn.disabled  = false;
+  btn.textContent = 'Auditar';
+
+  const msgs = [];
+  if (done)    msgs.push(`${done} URL${done > 1 ? 's adicionadas' : ' adicionada'}`);
+  if (skipped) msgs.push(`${skipped} ignorada${skipped > 1 ? 's' : ''} (duplicada${skipped > 1 ? 's' : ''})`);
+  if (errors)  msgs.push(`${errors} com erro`);
+  toast(msgs.join(' · '), done ? 'ok' : 'warn');
+
+  await loadResults(currentAuditId);
+}
+
+// ── Delete result ──────────────────────────────────────────────────────────────
+async function deleteResult(resultId, idx, e) {
+  e.stopPropagation();
+  if (!confirm('Remover esta URL da auditoria?')) return;
+  try {
+    const res = await fetch(`/api/audit/${currentAuditId}/result/${resultId}`, { method: 'DELETE' });
+    if (!res.ok) { toast('Erro ao remover URL', 'err'); return; }
+    currentResults.splice(idx, 1);
+    toast('URL removida', 'ok');
+    if (currentAudit) renderResults(currentAudit, currentResults);
+  } catch(err) {
+    toast('Erro: ' + err.message, 'err');
+  }
+}
+
+// ── Load results ───────────────────────────────────────────────────────────────
+async function loadResults(id) {
+  const res  = await fetch('/api/audit/' + id + '/results');
+  const data = await res.json();
+  currentAuditId = id;
+  currentAudit   = data.audit;
+  currentResults = data.results || [];
+  renderResults(data.audit, currentResults);
+}
+
+// ── Domain helpers ─────────────────────────────────────────────────────────────
+function getDomain(url) {
+  try { return new URL(url).hostname.replace(/^www\./i, ''); }
+  catch(e) { return (url || '').substring(0, 20); }
+}
+function groupByDomain(results) {
+  const groups = {};
+  results.forEach(r => {
+    const d = getDomain(r.url);
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(r);
+  });
+  return groups;
+}
+function getUrlHealth(r) {
+  if (r.error_count === 0 && r.warn_count === 0) return 'ok';
+  if (r.error_count >= 3) return 'err';
+  return 'warn';
+}
+
+// ── Render results ─────────────────────────────────────────────────────────────
+function renderResults(audit, results) {
+  currentAudit = audit;
+  document.getElementById('result-title').textContent = audit.name || 'Auditoria';
+  document.getElementById('result-meta').textContent  =
+    `${results.length} URLs • ${new Date(audit.created_at).toLocaleString('pt-BR')}`;
+
+  // Destroy existing charts
+  Object.values(chartRegistry).forEach(c => { try { c.destroy(); } catch(e) {} });
+  chartRegistry = {};
+
+  // Build strict per-domain groups (each URL assigned exclusively to its domain)
+  const rawGroups = groupByDomain(results);
+  const domains   = Object.keys(rawGroups).sort();
+  const isMulti   = domains.length > 1;
+
+  // Re-filter to guarantee no cross-domain leakage
+  const groups = {};
+  domains.forEach(d => {
+    groups[d] = results.filter(r => getDomain(r.url) === d);
+  });
+
+  const container = document.getElementById('domain-sections');
+  container.innerHTML = domains.map((domain, idx) =>
+    buildDomainSection(domain, groups[domain], idx, isMulti)
+  ).join('');
+
+  // Initialize charts after DOM update — each with its own isolated dataset
+  domains.forEach((domain, idx) => {
+    renderCategoryChart(groups[domain], `chart-cat-${idx}`);
+    renderTopProblems(groups[domain], `top-problems-${idx}`);
+    renderRanking(groups[domain], `ranking-list-${idx}`);
+  });
+
+  renderTable(results);
+}
+
+// ── Domain section HTML ────────────────────────────────────────────────────────
+function buildDomainSection(domain, results, idx, isMulti) {
+  const total = results.length;
+  const ok    = results.filter(r => getUrlHealth(r) === 'ok').length;
+  const warns = results.filter(r => getUrlHealth(r) === 'warn').length;
+  const errs  = results.filter(r => getUrlHealth(r) === 'err').length;
+
+  const header = isMulti ? `
+    <div class="domain-section-header" onclick="toggleDomainSection(${idx})">
+      <span class="domain-toggle-arrow" id="dsi-arrow-${idx}">▼</span>
+      <span style="font-size:18px">🏢</span>
+      <h3>${domain}</h3>
+      <span style="font-size:11px;color:var(--text2);margin-left:4px">${total} URL${total>1?'s':''}</span>
+    </div>` : '';
+
+  return `
+    <div class="domain-section">
+      ${header}
+      <div id="dsi-body-${idx}">
+        <div class="stats-grid">
+          <div class="stat-card stat-blue"><div class="value">${total}</div><div class="label">URLs Auditadas</div></div>
+          <div class="stat-card stat-ok">  <div class="value">${ok}</div>   <div class="label">🟢 Saudável</div></div>
+          <div class="stat-card stat-warn"><div class="value">${warns}</div> <div class="label">🟡 Com Alertas</div></div>
+          <div class="stat-card stat-err"> <div class="value">${errs}</div>  <div class="label">🔴 Com Erros</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Status por Categoria</h3>
+            <div class="chart-wrap"><canvas id="chart-cat-${idx}"></canvas></div>
+          </div>
+          <div id="top-problems-${idx}"></div>
+        </div>
+        <div class="ranking-card">
+          <h3>🏆 Páginas com mais problemas${isMulti ? ' — ' + domain : ''}</h3>
+          <div id="ranking-list-${idx}"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Charts ─────────────────────────────────────────────────────────────────────
+function renderCategoryChart(results, canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (chartRegistry[canvasId]) {
+    try { chartRegistry[canvasId].destroy(); } catch(e) {}
+    delete chartRegistry[canvasId];
+  }
+  const n    = results.length || 1;
+  const cats = ['title_status','meta_status','h1_status','h2h3_status'];
+  const lbls = ['Title','Meta Desc','H1','H2/H3'];
+  const ok   = cats.map(c => results.filter(r => r[c]==='ok').length/n*100);
+  const warn = cats.map(c => results.filter(r => ['short','multiple','warn'].includes(r[c])).length/n*100);
+  const err  = cats.map(c => results.filter(r => ['absent','long'].includes(r[c])).length/n*100);
+  chartRegistry[canvasId] = new Chart(canvas.getContext('2d'), {
+    type:'bar',
+    data:{ labels:lbls, datasets:[
+      { label:'✅ OK',     data:ok,   backgroundColor:'rgba(5,150,105,.7)',  borderRadius:4 },
+      { label:'⚠️ Alerta', data:warn, backgroundColor:'rgba(217,119,6,.7)',  borderRadius:4 },
+      { label:'❌ Erro',   data:err,  backgroundColor:'rgba(220,38,38,.7)',   borderRadius:4 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#5a6a8a',boxWidth:12}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#5a6a8a'},grid:{color:'rgba(204,213,245,.6)'}},
+        y:{stacked:true,max:100,ticks:{color:'#5a6a8a',callback:v=>v+'%'},grid:{color:'rgba(204,213,245,.6)'}}
+      }
+    }
+  });
+}
+
+// ── Top problems panel ─────────────────────────────────────────────────────────
+function renderTopProblems(results, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const n = results.length || 1;
+  const defs = [
+    { label:'Title Tag',          icon:'📝', impact:'Alto',  check: r => ['absent','long','warn'].includes(r.title_status),    fix:'Revise titles para até 70 chars com a palavra-chave no início.' },
+    { label:'Meta Description',   icon:'📋', impact:'Alto',  check: r => ['absent','long','short'].includes(r.meta_status),    fix:'Adicione/revise meta descriptions entre 140–160 chars com CTA.' },
+    { label:'Tag H1',             icon:'🔤', impact:'Alto',  check: r => ['absent','multiple'].includes(r.h1_status),          fix:'Garanta exatamente 1 H1 por página com a palavra-chave principal.' },
+    { label:'Subtítulos H2/H3',   icon:'📌', impact:'Médio', check: r => r.h2h3_status === 'absent',                          fix:'Adicione H2/H3 para estruturar seções e facilitar leitura por IAs.' },
+    { label:'URL muito longa',    icon:'🔗', impact:'Baixo', check: r => ['warn','err'].includes(r.url_status),                fix:'Simplifique URLs para até 70 chars com slugs objetivos.' },
+    { label:'Conteúdo GEO fraco', icon:'🤖', impact:'Médio', check: r => (r.content_analysis||{}).geo_status === 'err',       fix:'Use listas e respostas diretas para melhorar visibilidade em IAs.' },
+  ];
+  const impactOrder = {Alto:3, Médio:2, Baixo:1};
+  const ranked = defs
+    .map(d => ({ ...d, count: results.filter(d.check).length,
+                 pct: Math.round(results.filter(d.check).length / n * 100) }))
+    .filter(d => d.count > 0)
+    .sort((a,b) => (b.count*impactOrder[b.impact]) - (a.count*impactOrder[a.impact]))
+    .slice(0, 3);
+
+  const impactColor = {Alto:'var(--err)', Médio:'var(--warn)', Baixo:'var(--text2)'};
+  const rankCls     = {Alto:'rank-high', Médio:'rank-med', Baixo:'rank-low'};
+
+  el.innerHTML = `<div class="chart-card top-problems-panel">
+    <h3>🎯 Top Problemas Prioritários</h3>
+    ${!ranked.length
+      ? `<div style="text-align:center;padding:20px;color:var(--ok);font-size:13px">✅ Nenhum problema crítico detectado!</div>`
+      : ranked.map((p,i) => `
+        <div class="top-problem-item">
+          <div class="problem-rank ${rankCls[p.impact]}">${i+1}</div>
+          <div class="problem-info">
+            <div class="problem-name">${p.icon} ${p.label}</div>
+            <div class="problem-meta">${p.count} URL${p.count>1?'s':''} afetada${p.count>1?'s':''} (${p.pct}%) — Impacto <strong style="color:${impactColor[p.impact]}">${p.impact}</strong></div>
+            <div class="problem-fix">💡 ${p.fix}</div>
+          </div>
+        </div>`).join('')
+    }
+  </div>`;
+}
+
+// ── Ranking ────────────────────────────────────────────────────────────────────
+function getRankingBadges(r) {
+  const err  = [];
+  const warn = [];
+  const ca   = r.content_analysis || {};
+
+  // Title
+  if      (r.title_status === 'absent') err.push('Title ausente');
+  else if (r.title_status === 'long')   err.push('Title longo');
+  else if (r.title_status === 'short')  warn.push('Title curto');
+
+  // Meta description
+  if      (r.meta_status === 'absent') err.push('Meta ausente');
+  else if (r.meta_status === 'long')   err.push('Meta longa');
+  else if (r.meta_status === 'short')  warn.push('Meta curta');
+
+  // H1
+  if      (r.h1_status === 'absent')   err.push('H1 ausente');
+  else if (r.h1_status === 'multiple') warn.push('H1 múltiplos');
+
+  // H2/H3
+  if (r.h2h3_status === 'absent') warn.push('H2/H3 ausente');
+
+  // URL
+  if      (r.url_status === 'err')  err.push('URL muito longa');
+  else if (r.url_status === 'warn') warn.push('URL longa');
+
+  // GEO
+  if      (ca.geo_status === 'err')  err.push('GEO fraco');
+  else if (ca.geo_status === 'warn') warn.push('GEO parcial');
+
+  return [
+    ...err.map(l  => `<span class="badge badge-err">❌ ${l}</span>`),
+    ...warn.map(l => `<span class="badge badge-warn">⚠️ ${l}</span>`),
+  ].join('');
+}
+
+function renderRanking(results, elementId) {
+  const el  = document.getElementById(elementId);
+  if (!el) return;
+  const top = [...results]
+    .sort((a,b) => (b.error_count+b.warn_count)-(a.error_count+a.warn_count))
+    .slice(0,8).filter(r => r.error_count > 0 || r.warn_count > 0);
+  el.innerHTML = top.length
+    ? top.map((r,i) => {
+        const cls = ['rank-1','rank-2','rank-3'][i] || 'rank-n';
+        return `<div class="ranking-item">
+          <div class="rank-num ${cls}">${i+1}</div>
+          <div class="rank-url" title="${r.url}"><a href="${r.url}" target="_blank">${r.url}</a></div>
+          <div class="rank-badges">${getRankingBadges(r)}</div>
+        </div>`;
+      }).join('')
+    : '<p style="color:var(--text2);text-align:center;padding:18px">🎉 Nenhuma página com problemas críticos!</p>';
+}
+
+// ── Domain group toggle (table rows) ──────────────────────────────────────────
+function toggleDomainGroup(dIdx) {
+  const rows = document.querySelectorAll(`#result-tbody .domain-data-${dIdx}`);
+  const icon = document.getElementById(`icon-group-${dIdx}`);
+  const isCollapsed = icon && icon.textContent.trim() === '▶';
+  if (icon) icon.textContent = isCollapsed ? '▼' : '▶';
+  rows.forEach(row => { row.style.display = isCollapsed ? '' : 'none'; });
+}
+
+// ── Domain section toggle (dashboard cards/charts per domain) ──────────────────
+function toggleDomainSection(idx) {
+  const body  = document.getElementById(`dsi-body-${idx}`);
+  const arrow = document.getElementById(`dsi-arrow-${idx}`);
+  if (!body) return;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? '' : 'none';
+  if (arrow) arrow.textContent = isHidden ? '▼' : '▶';
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────────
+function pillHtml(status, value, field) {
+  const icons  = {ok:'✅', short:'⚠️', long:'❌', absent:'❌', multiple:'⚠️', warn:'⚠️'};
+  const cls    = {ok:'ok', short:'warn', long:'err', absent:'err', multiple:'warn', warn:'warn'};
+  const labels = {ok:'OK', short:'Curto', long:'Longo', absent:'Ausente', multiple:'Múltiplos', warn:'Longo'};
+  if (!status) return '<span class="pill pill-dead">—</span>';
+  const chars      = value !== undefined ? ` ${value}` : '';
+  const clickable  = (status !== 'ok' && field) ? ` onclick="showPillModal('${field}','${status}')" title="Clique para saber como corrigir"` : '';
+  const extraCls   = (status !== 'ok' && field) ? ' pill-clickable' : '';
+  return `<span class="pill pill-${cls[status]||'dead'}${extraCls}"${clickable}>${icons[status]||'?'} ${labels[status]||status}${chars}</span>`;
+}
+function urlLenPill(len, st) {
+  const map = {ok:'pill-ok', warn:'pill-warn', err:'pill-err'};
+  const ic  = {ok:'✅', warn:'⚠️', err:'❌'};
+  const cl  = map[st] || 'pill-dead';
+  const cl2 = st !== 'ok' ? ` onclick="showPillModal('url','${st}')" title="Clique para saber como corrigir"` : '';
+  const ex  = st !== 'ok' ? ' pill-clickable' : '';
+  return `<span class="pill ${cl}${ex}"${cl2}>${ic[st]||'?'} ${len} chars</span>`;
+}
+function geoStatusPill(geo) {
+  const m = {ok:'pill-ok', warn:'pill-warn', err:'pill-err'};
+  const i = {ok:'✅', warn:'⚠️', err:'❌'};
+  const l = {ok:'OK', warn:'Atenção', err:'Problema'};
+  return `<span class="pill ${m[geo]||'pill-dead'}">${i[geo]||'?'} ${l[geo]||'—'}</span>`;
+}
+
+function generateInsights(r) {
+  const ins = [];
+  if (r.title_status === 'absent')    ins.push({type:'err',  field:'Title', text:'Adicione um title tag único com até 70 caracteres.'});
+  else if (r.title_status === 'long') ins.push({type:'err',  field:'Title', text:'Title acima de 90 chars — reduza para até 70 para evitar truncamento.'});
+  else if (r.title_status === 'warn') ins.push({type:'warn', field:'Title', text:'Title entre 71–90 chars — reduza para até 70 para exibição completa.'});
+  if (r.meta_status === 'absent')     ins.push({type:'err',  field:'Meta',  text:'Crie uma meta description de 140–160 caracteres com CTA implícito.'});
+  else if (r.meta_status === 'long')  ins.push({type:'err',  field:'Meta',  text:'Reduza a meta description para até 160 caracteres.'});
+  else if (r.meta_status === 'short') ins.push({type:'warn', field:'Meta',  text:'Expanda a meta description para pelo menos 140 caracteres.'});
+  if (r.h1_status === 'absent')       ins.push({type:'err',  field:'H1',    text:'Adicione um H1 com a palavra-chave principal da página.'});
+  else if (r.h1_status === 'multiple') ins.push({type:'warn', field:'H1',   text:'Mantenha apenas 1 H1 por página — múltiplos H1 confundem os crawlers.'});
+  if (r.h2h3_status === 'absent')     ins.push({type:'err',  field:'H2/H3', text:'Estruture o conteúdo com H2 e H3 para melhorar hierarquia e leitura por IAs.'});
+  if (r.url_status === 'warn')        ins.push({type:'warn', field:'URL',   text:'URL com 71–80 chars. Considere simplificar o slug.'});
+  else if (r.url_status === 'err')    ins.push({type:'err',  field:'URL',   text:'URL acima de 80 chars. Encurte para até 70 chars.'});
+  return ins;
+}
+
+function insightHtml(ins) {
+  const icon = {err:'❌', warn:'⚠️', ok:'✅', geo:'🤖'}[ins.type] || '•';
+  const cls  = {err:'insight-err', warn:'insight-warn', ok:'insight-ok', geo:'insight-geo'}[ins.type] || '';
+  return `<div class="insight-item ${cls}">
+    <span class="insight-icon">${icon}</span>
+    <div class="insight-text"><strong>${ins.field}</strong>${ins.text}</div>
+  </div>`;
+}
+
+function keywordsHtml(keywords) {
+  if (!keywords || !keywords.length) return '';
+  return `<div class="kw-section">
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">🔑 Palavras-chave detectadas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${keywords.map(k => `<span class="kw-tag">${k}</span>`).join('')}</div>
+  </div>`;
+}
+
+function deepAnalysisHtml(deep) {
+  if (!deep || !deep.criteria || !deep.criteria.length) return '';
+  const vMap = {ok:'✅ Boas práticas atendidas', warn:'⚠️ Melhorias recomendadas', err:'❌ Atenção necessária'};
+  const vCls = {ok:'insight-ok', warn:'insight-warn', err:'insight-err'};
+  const catEmojis = {'Estrutura':'📐','SEO':'🔍','GEO':'🤖','Público CIO/CTO':'👔','CTA':'📢'};
+  const cats = {};
+  deep.criteria.forEach(c => { if (!cats[c.cat]) cats[c.cat] = []; cats[c.cat].push(c); });
+
+  let html = `<div class="geo-section-title">🔬 Análise Aprofundada de Conteúdo</div>
+    <div class="insight-item ${vCls[deep.verdict]||'insight-warn'}">
+      <span class="insight-icon">${{ok:'✅',warn:'⚠️',err:'❌'}[deep.verdict]||'?'}</span>
+      <div class="insight-text"><strong>Parecer Geral</strong>${vMap[deep.verdict]||''}</div>
+    </div>`;
+  if (deep.strengths && deep.strengths.length) {
+    html += `<div class="insight-item insight-ok">
+      <span class="insight-icon">💪</span>
+      <div class="insight-text"><strong>Pontos Fortes</strong>${deep.strengths.join(' • ')}</div>
+    </div>`;
+  }
+  Object.entries(cats).forEach(([cat, items]) => {
+    html += `<div style="margin-top:8px"><span class="deep-cat-title">${catEmojis[cat]||'•'} ${cat}</span></div>
+      <div class="insight-list" style="margin-top:5px">
+        ${items.map(item => {
+          const cl = {ok:'insight-ok',warn:'insight-warn',err:'insight-err'}[item.status]||'insight-warn';
+          const ic = {ok:'✅',warn:'⚠️',err:'❌'}[item.status]||'?';
+          return `<div class="insight-item ${cl}">
+            <span class="insight-icon">${ic}</span>
+            <div class="insight-text"><strong>${item.item}</strong>${item.text}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  });
+  return html;
+}
+
+function geoInsightsHtml(ca) {
+  if (!ca || !ca.insights || !ca.insights.length) return '';
+  const statusIcon = {ok:'✅', warn:'⚠️', err:'❌'}[ca.geo_status] || '?';
+  const items = ca.insights.map(i => {
+    const cl = {ok:'insight-ok', warn:'insight-geo', err:'insight-err'}[i.status] || 'insight-geo';
+    const ic = {ok:'✅', warn:'⚠️', err:'❌'}[i.status] || '?';
+    return `<div class="insight-item ${cl}">
+      <span class="insight-icon">${ic}</span>
+      <div class="insight-text"><strong>${i.criteria}</strong>${i.text}</div>
+    </div>`;
+  }).join('');
+  const wc = ca.word_count ? ` • ${ca.word_count} palavras` : '';
+  return `<div class="geo-section-title">🤖 Análise GEO ${statusIcon}${wc}</div>
+    <div class="insight-list">${items}</div>`;
+}
+
+function pautasHtml(pautas) {
+  if (!pautas || !pautas.length) return '';
+  return `<div class="geo-section-title" style="color:var(--accent);background:rgba(7,108,254,.06);border-color:var(--accent)">📰 Sugestões de Pautas para a Vertigo</div>
+    <div>${pautas.map((p,i) => `
+      <div class="pauta-card">
+        <div class="pauta-num">${i+1}</div>
+        <div style="flex:1">
+          <div class="pauta-title">${p.titulo}</div>
+          <div class="pauta-detail"><strong>Ângulo editorial:</strong> ${p.angulo}</div>
+          <div class="pauta-detail"><strong>Intenção de busca:</strong> ${p.intencao}</div>
+          <div class="pauta-detail"><strong>Por que faz sentido para a Vertigo:</strong> ${p.por_que_vertigo}</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function renderTable(results) {
+  // Populate company filter
+  const domains = [...new Set(results.map(r => getDomain(r.url)))].sort();
+  const sel = document.getElementById('company-filter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todos os domínios</option>' +
+    domains.map(d => `<option value="${d}"${d===prev?' selected':''}>${d}</option>`).join('');
+
+  const groups = {};
+  domains.forEach(d => { groups[d] = results.filter(r => getDomain(r.url) === d); });
+
+  const tbody = document.getElementById('result-tbody');
+  let html = '';
+  let globalIdx = 0;   // unique index across all domain groups
+
+  domains.forEach((domain, dIdx) => {
+    const domainResults = groups[domain];
+    const count = domainResults.length;
+
+    // ── Domain group header ──────────────────────────────────────────
+    html += `<tr class="domain-group-header" data-didx="${dIdx}" onclick="toggleDomainGroup(${dIdx})">
+      <td colspan="12">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="domain-toggle-icon" id="icon-group-${dIdx}">▼</span>
+          <strong style="color:var(--accent);font-size:13px">${domain}</strong>
+          <span style="color:var(--text2);font-weight:400;font-size:11px">(${count} URL${count>1?'s':''})</span>
+        </div>
+      </td>
+    </tr>`;
+
+    // ── URL rows for this domain ─────────────────────────────────────
+    domainResults.forEach(r => {
+      const idx    = globalIdx++;
+      const ca     = r.content_analysis || {};
+      const geoSt  = ca.geo_status || 'ok';
+      const urlLen = r.url_len !== undefined ? r.url_len : r.url.length;
+      const urlSt  = r.url_status || 'ok';
+      const dom    = getDomain(r.url);
+      const rid    = r.id || idx;
+
+      const mainRow = `<tr class="data-row domain-data-${dIdx}" data-idx="${idx}" data-url="${(r.url||'').toLowerCase()}" data-domain="${dom}">
+        <td class="empresa-cell" title="${dom}">${dom}</td>
+        <td onclick="toggleInsights(this,${idx})">
+          <button class="btn-insights" id="ins-btn-${idx}">💡 Insights</button>
+        </td>
+        <td class="url-cell"><a href="${r.url}" target="_blank" title="${r.url}">${r.url}</a></td>
+        <td>${r.crawl_error ? '<span class="pill pill-dead">—</span>' : urlLenPill(urlLen,urlSt)}</td>
+        <td>${r.crawl_error ? '<span class="pill pill-dead">Erro</span>' : pillHtml(r.title_status,r.title_len,'title')}</td>
+        <td>${r.crawl_error ? '<span class="pill pill-dead">—</span>' : pillHtml(r.meta_status,r.meta_desc_len,'meta')}</td>
+        <td>${r.crawl_error ? '<span class="pill pill-dead">—</span>' : pillHtml(r.h1_status,undefined,'h1')}</td>
+        <td>${r.crawl_error ? '<span class="pill pill-dead">—</span>' : pillHtml(r.h2h3_status)}</td>
+        <td>${r.crawl_error ? '<span class="pill pill-dead">—</span>' : geoStatusPill(geoSt)}</td>
+        <td><span style="color:var(--err);font-weight:700">${r.error_count}</span></td>
+        <td><span style="color:var(--warn);font-weight:700">${r.warn_count}</span></td>
+        <td><button class="btn-del-row" title="Remover URL" onclick="deleteResult(${rid},${idx},event)">🗑</button></td>
+      </tr>`;
+
+      const seoIns = generateInsights(r);
+      const seoHtml = seoIns.length
+        ? `<div class="insight-list">${seoIns.map(insightHtml).join('')}</div>`
+        : `<div class="insight-item insight-ok"><span class="insight-icon">✅</span><div class="insight-text"><strong>SEO Técnico</strong>Todos os elementos estão dentro dos padrões recomendados.</div></div>`;
+
+      const geoTip = `<div class="geo-fixed-tip">
+        <span style="font-size:16px;flex-shrink:0">🤖</span>
+        <div><strong style="display:block;margin-bottom:2px;font-size:10px;text-transform:uppercase;letter-spacing:.06em">Dica GEO</strong>
+        Para ser citado por IAs como ChatGPT e Perplexity, inclua respostas diretas nos primeiros parágrafos e use listas estruturadas.</div>
+      </div>`;
+
+      const insightsRow = `<tr class="insights-row domain-data-${dIdx}" id="insights-${idx}" style="display:none">
+        <td colspan="12">
+          <div class="insights-panel">
+            <h4>💡 Insights & Recomendações — <span style="font-weight:400;color:var(--text2)">${r.url}</span></h4>
+            ${seoHtml}
+            ${keywordsHtml(ca.keywords)}
+            ${deepAnalysisHtml(ca.deep_analysis)}
+            ${geoInsightsHtml(ca)}
+            ${geoTip}
+            ${pautasHtml(ca.pautas)}
+          </div>
+        </td>
+      </tr>`;
+
+      html += mainRow + insightsRow;
+    });
+  });
+
+  tbody.innerHTML = html;
+}
+
+function toggleInsights(cell, idx) {
+  const iRow    = document.getElementById('insights-' + idx);
+  const btn     = document.getElementById('ins-btn-' + idx);
+  const isHidden = iRow.style.display === 'none';
+  document.querySelectorAll('.insights-row').forEach(r => { r.style.display = 'none'; });
+  document.querySelectorAll('.btn-insights').forEach(b => { b.classList.remove('active'); b.innerHTML = '💡 Insights'; });
+  if (isHidden) {
+    iRow.style.display = '';
+    btn.classList.add('active');
+    btn.textContent = '✕ Fechar';
+  }
+}
+
+function filterTable() {
+  const q   = (document.getElementById('table-search').value || '').toLowerCase();
+  const dom = (document.getElementById('company-filter').value || '').toLowerCase();
+
+  // Show/hide individual URL rows
+  document.querySelectorAll('#result-tbody tr.data-row').forEach(tr => {
+    const show = (!q || tr.dataset.url.includes(q)) && (!dom || (tr.dataset.domain||'').toLowerCase() === dom);
+    tr.style.display = show ? '' : 'none';
+    const iRow = document.getElementById('insights-' + tr.dataset.idx);
+    if (iRow) iRow.style.display = 'none';
+  });
+
+  // Show/hide domain group headers: visible only when at least one row in group is visible
+  document.querySelectorAll('#result-tbody tr.domain-group-header').forEach(hdr => {
+    const dIdx = hdr.dataset.didx;
+    const rows = document.querySelectorAll(`#result-tbody tr.domain-data-${dIdx}.data-row`);
+    const anyVisible = Array.from(rows).some(r => r.style.display !== 'none');
+    hdr.style.display = anyVisible ? '' : 'none';
+  });
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────────
+function exportXlsx() {
+  if (!currentAuditId) return;
+  window.location.href = '/api/audit/' + currentAuditId + '/export';
+}
+
+// ── PDF ────────────────────────────────────────────────────────────────────────
+function statusChip(s) {
+  const m = {ok:'✅ OK', short:'⚠️ Curto', long:'❌ Longo', absent:'❌ Ausente', multiple:'⚠️ Múltiplos', warn:'⚠️ Atenção', err:'❌ Problema'};
+  return m[s] || (s || '—');
+}
+
+function buildPdfHtml() {
+  const now  = new Date().toLocaleString('pt-BR');
+  const date = new Date().toLocaleDateString('pt-BR');
+
+  const total = currentResults.length;
+  const ok    = currentResults.filter(r => getUrlHealth(r) === 'ok').length;
+  const warns = currentResults.filter(r => getUrlHealth(r) === 'warn').length;
+  const errs  = currentResults.filter(r => getUrlHealth(r) === 'err').length;
+  const auditName = currentAudit ? (currentAudit.name || 'Auditoria') : 'Auditoria';
+
+  let body = `<div style="background:#f0f4ff;border-radius:8px;padding:14px 18px;margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;color:#0C1557;margin-bottom:8px">${auditName}</div>
+    <div style="display:flex;gap:24px;font-size:11px;flex-wrap:wrap">
+      <span>Total: <strong>${total} URLs</strong></span>
+      <span class="st-ok">Saudáveis: <strong>${ok}</strong></span>
+      <span class="st-warn">Alertas: <strong>${warns}</strong></span>
+      <span class="st-err">Erros: <strong>${errs}</strong></span>
+    </div>
+  </div>`;
+
+  currentResults.forEach(r => {
+    const domain  = getDomain(r.url);
+    const ca      = r.content_analysis || {};
+    const health  = getUrlHealth(r);
+    const hLabel  = {ok:'Saudável', warn:'Atenção', err:'Problema'}[health] || '';
+    const hClass  = {ok:'st-ok', warn:'st-warn', err:'st-err'}[health] || '';
+    const seoIns  = generateInsights(r);
+    const deep    = ca.deep_analysis || {};
+    const pautas  = ca.pautas || [];
+    const kws     = (ca.keywords || []).join(', ');
+
+    body += `<div class="pdf-url-block" style="border:1px solid #ccd5f5;border-radius:8px;padding:14px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e4ecff;padding-bottom:8px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#076CFE">${domain}</div>
+        <div class="${hClass}" style="font-size:11px">${hLabel}</div>
+      </div>
+      <div style="font-size:9px;color:#5a6a8a;word-break:break-all;margin-bottom:10px">${r.url}</div>
+      ${kws ? `<div style="margin-bottom:10px"><div class="sec-label-blue">Palavras-chave:</div>
+        <div style="font-size:10px;color:#1a2040">${kws}</div></div>` : ''}
+      <div class="sec-label">Análise Técnica:</div>
+      <table class="tech-table">
+        <thead><tr>
+          <th>Critério</th><th>Status</th><th>Detalhe</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Title</td><td>${statusChip(r.title_status)}</td><td>${r.title_len} chars — ${(r.title||'(ausente)').substring(0,60)}</td></tr>
+          <tr><td>Meta Desc</td><td>${statusChip(r.meta_status)}</td><td>${r.meta_desc_len} chars</td></tr>
+          <tr><td>H1</td><td>${statusChip(r.h1_status)}</td><td>${r.h1_count} tag(s)</td></tr>
+          <tr><td>H2/H3</td><td>${statusChip(r.h2h3_status)}</td><td>${r.h2h3_count} tags</td></tr>
+          <tr><td>URL</td><td>${statusChip(r.url_status)}</td><td>${r.url_len||r.url.length} chars</td></tr>
+        </tbody>
+      </table>
+      ${seoIns.length ? `<div style="margin-bottom:10px"><div class="sec-label">Melhorias Técnicas:</div>${seoIns.map(i=>`<div class="${i.type==='err'?'ins-err':'ins-warn'}">${i.type==='err'?'❌':'⚠️'} <strong>${i.field}:</strong> ${i.text}</div>`).join('')}</div>` : ''}
+      ${deep.verdict ? `<div style="margin-bottom:10px"><div class="sec-label">Análise Aprofundada — ${statusChip(deep.verdict)}:</div>
+        ${(deep.strengths||[]).length ? `<div class="ins-ok">💪 Pontos fortes: ${deep.strengths.join(' • ')}</div>` : ''}
+        ${(deep.priorities||[]).map(p=>`<div class="ins-warn">⚠️ ${p}</div>`).join('')}
+      </div>` : ''}
+      ${(ca.insights||[]).length ? `<div style="margin-bottom:10px"><div class="sec-label-geo">Análise GEO:</div>${ca.insights.map(i=>`<div class="${i.status==='ok'?'ins-ok':i.status==='err'?'ins-err':'ins-geo'}">${i.status==='ok'?'✅':i.status==='err'?'❌':'⚠️'} <strong>${i.criteria}:</strong> ${i.text}</div>`).join('')}</div>` : ''}
+      <div class="ins-tip">🤖 <strong>Dica GEO:</strong> Para ser citado por IAs, inclua respostas diretas nos primeiros parágrafos e use listas estruturadas.</div>
+      ${pautas.length ? `<div><div class="sec-label-blue">Sugestões de Pautas:</div>
+        ${pautas.map((p,pi)=>`<div class="pauta-card">
+          <div style="font-size:10px;font-weight:700;color:#1a2040;margin-bottom:4px">${pi+1}. ${p.titulo}</div>
+          <div style="font-size:9px;color:#5a6a8a;margin-bottom:2px"><strong style="color:#1a2040">Ângulo:</strong> ${p.angulo}</div>
+          <div style="font-size:9px;color:#5a6a8a;margin-bottom:2px"><strong style="color:#1a2040">Intenção:</strong> ${p.intencao}</div>
+          <div style="font-size:9px;color:#5a6a8a"><strong style="color:#1a2040">Por que Vertigo:</strong> ${p.por_que_vertigo}</div>
+        </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  });
+
+  return `<div style="font-family:Arial,sans-serif;font-size:11px;color:#1a2040;padding:20px;max-width:760px;background:#fff">
+    <div style="display:flex;align-items:center;gap:16px;border-bottom:3px solid #076CFE;padding-bottom:14px;margin-bottom:20px">
+      <div style="background:#0C1557;color:#fff;padding:6px 14px;border-radius:6px;font-size:16px;font-weight:800;letter-spacing:-0.5px">VERTIGO</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:#1a2040">Relatório de Auditoria SEO + GEO</div>
+        <div style="font-size:10px;color:#5a6a8a;margin-top:2px">Digital Intelligence For Business • ${now}</div>
+      </div>
+    </div>
+    ${body}
+    <div style="margin-top:20px;border-top:1px solid #ccd5f5;padding-top:10px;font-size:9px;color:#5a6a8a;text-align:center">
+      Relatório gerado pela auditoria de SEO da Vertigo • ${date}
+    </div>
+  </div>`;
+}
+
+function downloadPdf() {
+  if (!currentResults.length) { toast('Nenhum resultado para exportar', 'warn'); return; }
+
+  const btn  = document.getElementById('btn-pdf-results');
+  btn.innerHTML = '<span class="spin"></span> Abrindo relatório…';
+  btn.disabled  = true;
+
+  try {
+    const content  = buildPdfHtml();
+    const filename = `relatorio-seo-vertigo-${new Date().toISOString().slice(0,10)}`;
+
+    // ── Monta a página de impressão completa ────────────────────────────────
+    const fullPage = `<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<title>${filename}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;
+  -webkit-print-color-adjust:exact!important;
+  print-color-adjust:exact!important;
+  color-adjust:exact!important}
+body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#1a2040}
+@page{margin:12mm 10mm;size:A4 portrait}
+@media print{
+  .no-print{display:none!important}
+  body{padding:0}
+  /* Cada URL começa numa nova página (exceto a primeira) */
+  .pdf-url-block + .pdf-url-block{page-break-before:always;margin-top:0}
+}
+.no-print{
+  position:sticky;top:0;z-index:99;
+  padding:12px 20px;background:#0C1557;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap
+}
+.no-print p{color:rgba(255,255,255,.65);font-size:11px;flex:1;min-width:160px}
+.btn-save{
+  padding:9px 22px;background:#076CFE;color:#fff;
+  border:none;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:700;white-space:nowrap
+}
+.btn-save:hover{background:#0559d4}
+.btn-close{
+  padding:9px 14px;background:#555;color:#fff;
+  border:none;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap
+}
+.btn-close:hover{background:#333}
+/* Tabela da análise técnica */
+.tech-table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px}
+.tech-table th{padding:5px 8px;text-align:left;background:#f0f4ff;font-weight:700}
+.tech-table td{padding:4px 8px;border-bottom:1px solid #e8edf8}
+/* Badges de status */
+.st-ok  {color:#059669;font-weight:700}
+.st-warn{color:#d97706;font-weight:700}
+.st-err {color:#dc2626;font-weight:700}
+/* Blocos de insight */
+.ins-ok  {background:#d1fae5;border-left:3px solid #059669;padding:4px 8px;margin-bottom:3px;border-radius:3px;font-size:9px}
+.ins-warn{background:#fef3c7;border-left:3px solid #d97706;padding:4px 8px;margin-bottom:3px;border-radius:3px;font-size:9px}
+.ins-err {background:#fee2e2;border-left:3px solid #dc2626;padding:4px 8px;margin-bottom:3px;border-radius:3px;font-size:9px}
+.ins-geo {background:#ede9fe;border-left:3px solid #7c3aed;padding:4px 8px;margin-bottom:3px;border-radius:3px;font-size:9px}
+.ins-tip {background:#f5f3ff;border:1px solid #c4b5fd;padding:5px 8px;border-radius:4px;font-size:9px;color:#6d28d9;margin-bottom:10px}
+/* Pautas */
+.pauta-card{border:1px solid #ccd5f5;border-left:3px solid #076CFE;border-radius:4px;padding:8px;margin-bottom:7px}
+/* Seções label */
+.sec-label{font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;margin-top:10px}
+.sec-label-geo{font-size:9px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;margin-top:10px}
+.sec-label-blue{font-size:9px;font-weight:700;color:#076CFE;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;margin-top:10px}
+</style>
+</head><body>
+<div class="no-print">
+  <p>No diálogo de impressão selecione <strong style="color:#fff">Salvar como PDF</strong> como destino</p>
+  <button class="btn-save" onclick="window.print()">🖨️ Salvar como PDF</button>
+  <button class="btn-close" onclick="window.close()">✕ Fechar</button>
+</div>
+${content}
+</body></html>`;
+
+    // ── Abre numa nova aba via Blob URL ──────────────────────────────────────
+    const blob = new Blob([fullPage], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const win  = window.open(url, '_blank');
+
+    if (win) {
+      // Dispara o diálogo de impressão automaticamente após o load
+      win.addEventListener('load', () => {
+        setTimeout(() => { try { win.print(); } catch(e){} }, 500);
+      });
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } else {
+      // Fallback: baixa como .html se popup for bloqueado
+      const a  = document.createElement('a');
+      a.href   = url;
+      a.download = filename + '.html';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast('Popup bloqueado — HTML baixado. Abra no browser e imprima como PDF.', 'warn');
+    }
+  } catch(e) {
+    toast('Erro ao gerar relatório: ' + e.message, 'err');
+  } finally {
+    btn.innerHTML = '📥 Baixar Relatório em PDF';
+    btn.disabled  = false;
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const wrap = document.getElementById('toasts');
+  const el   = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'fadeOut .3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
+}
+
+</script>
+
+<!-- ROADMAP -->
+<div class="screen" id="screen-roadmap">
+  <div class="roadmap-hero">
+    <h1>O que vem por aí</h1>
+    <p>Funcionalidades em desenvolvimento</p>
+  </div>
+  <div class="roadmap-grid">
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M7 12h1M16 12h1M12 7v1M12 16v1"/></svg>
+      </div>
+      <div class="roadmap-card-name">Score Geral por URL</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 20V10M17 20V4M7 20v-4"/><circle cx="19" cy="2" r="1" fill="currentColor" stroke="none"/><path d="M5 10a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/></svg>
+      </div>
+      <div class="roadmap-card-name">Análise de Velocidade de Página</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/><line x1="8" y1="8" x2="16" y2="16"/></svg>
+      </div>
+      <div class="roadmap-card-name">Detecção de Links Quebrados</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      </div>
+      <div class="roadmap-card-name">Análise de Imagens</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-8"/></svg>
+      </div>
+      <div class="roadmap-card-name">Integração com Google Search Console</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="6" height="6" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="5" y="15" width="6" height="6" rx="1"/><path d="M5 9v3M12 9v3M8 12h7"/></svg>
+      </div>
+      <div class="roadmap-card-name">Rastreamento Completo do Sitemap</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M19.07 19.07A10 10 0 0 0 4.93 4.93"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+      </div>
+      <div class="roadmap-card-name">Ajustes Visuais</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 6V4m0 16v-2M16 6V4m0 16v-2"/><circle cx="8" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="roadmap-card-name">Integração com Screaming Frog</div>
+      <span class="badge-soon">Em breve</span>
+    </div>
+
+  </div>
+</div>
+
+<footer class="app-footer">SEO Audit Tool — Versão 1.0</footer>
+
+</body>
+</html>
